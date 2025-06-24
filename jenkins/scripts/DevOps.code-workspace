@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"name": "simple-java-maven-app",
+			"path": "../.."
+		}
+	],
+	"settings": {}
+}

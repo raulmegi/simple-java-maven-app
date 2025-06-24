@@ -1,26 +1,23 @@
-#!/usr/bin/env bash
+echo off
+set MAVEN=C:\apache-maven-3.9.10\bin\mvn
 
-echo 'The following Maven command installs your Maven-built Java application'
-echo 'into the local Maven repository, which will ultimately be stored in'
-echo 'Jenkins''s local Maven repository (and the "maven-repository" Docker data'
-echo 'volume).'
-set -x
-mvn jar:jar install:install help:evaluate -Dexpression=project.name
-set +x
+echo Instalando artefacto en el repositorio local de Maven...
+call "%MAVEN%" install
 
-echo 'The following command extracts the value of the <name/> element'
-echo 'within <project/> of your Java/Maven project''s "pom.xml" file.'
-set -x
-NAME=`mvn -q -DforceStdout help:evaluate -Dexpression=project.name`
-set +x
+REM Extraer nombre y versión del POM
+FOR /F "tokens=2 delims=><" %%A IN ('findstr "<name>" pom.xml') DO set NAME=%%A
+FOR /F "tokens=2 delims=><" %%A IN ('findstr "<version>" pom.xml') DO set VERSION=%%A
 
-echo 'The following command behaves similarly to the previous one but'
-echo 'extracts the value of the <version/> element within <project/> instead.'
-set -x
-VERSION=`mvn -q -DforceStdout help:evaluate -Dexpression=project.version`
-set +x
+echo Nombre del proyecto: %NAME%
+echo Versión del proyecto: %VERSION%
 
-echo 'The following command runs and outputs the execution of your Java'
-echo 'application (which Jenkins built using Maven) to the Jenkins UI.'
-set -x
-java -jar target/${NAME}-${VERSION}.jar
+REM Ejecutar el JAR generado
+set JAR=target\%NAME%-%VERSION%.jar
+echo Ejecutando JAR: %JAR%
+
+IF EXIST %JAR% (
+    java -jar %JAR%
+) ELSE (
+    echo ❌ El archivo %JAR% no existe.
+    exit /b 1
+)
