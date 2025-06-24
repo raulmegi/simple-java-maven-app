@@ -1,25 +1,33 @@
 pipeline {
     agent any
+
     stages {
         stage('Build') {
             steps {
-                bat 'C:/apache-maven-3.9.10/bin/mvn -B -DskipTests clean package'
+                bat 'C:/apache-maven-3.9.10/bin/mvn clean package -DskipTests'
             }
         }
-        stage('Test') { 
+
+        stage('Test') {
             steps {
-                bat 'C:/apache-maven-3.9.10/bin/mvn test' 
+                bat 'C:/apache-maven-3.9.10/bin/mvn test'
             }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml' 
+        }
+
+        stage('Deliver') {
+            when {
+                expression {
+                    def commitMessage = bat(
+                        script: 'git log -1 --pretty=%B',
+                        returnStdout: true
+                    ).trim()
+                    return !commitMessage.contains("DO_NOT_DELIVER")
                 }
             }
-        }
-        stage('Deliver') {
             steps {
-                bat './jenkins/scripts/deliver.bat'
+                bat 'jenkins\\scripts\\deliver.bat'
             }
         }
     }
 }
+
